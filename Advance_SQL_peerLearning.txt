@@ -1,0 +1,1157 @@
+
+ * Peer Learning Document Advance SQL
+   -----------------------------------
+
+Question 1:
+----------
+Write a query that gives an overview of how many films have replacements costs in the following cost ranges
+
+low: 9.99 - 19.99
+medium: 20.00 - 24.99
+high: 25.00 - 29.99
+
+My Solution:-
+
+----------------------------------------------------------------------------------------------------------------
+select distinct                                                                                                |
+  SUM(CASE WHEN f.replacement_cost >=9.99 AND f.replacement_cost<=19.99 THEN 1 ELSE 0 END) over() as low,      |
+  SUM(CASE WHEN f.replacement_cost >=20.00 AND f.replacement_cost<=24.99 THEN 1 ELSE 0 END) over() as medium,  |
+  SUM(CASE WHEN f.replacement_cost >=25.00 AND f.replacement_cost<=29.99 THEN 1 ELSE 0 END)over()  as high.    |
+FROM film f;                                                                                                   |
+                                                                                                               |
+----------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+* Here in this particular question we have been asked to give the overview of the films where the replacement_cost is  in the given range categorising it into low, medium and high
+* So I have used window function where I have used CASE statement for filtering the data according to the given range of replacement cost and I categorise those filtered data for
+  each case statement as low, medium and high
+* Logic in the case statement is if the particular replacement_cost is within the specified range for the particular category then returning 1 else 0 which we are summing up using
+  SUM() function which results in total number of films in that particular range
+
+Team Solution Review for Question 1:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT cost_ranges,COUNT(cost_ranges)
+FROM(
+SELECT *, CASE WHEN replacement_cost BETWEEN 9.99 AND 19.99 THEN 'low' 
+WHEN replacement_cost BETWEEN 20 AND 24.99 THEN 'medium'
+WHEN replacement_cost BETWEEN 25 AND 29.99 THEN 'high'
+end as cost_ranges
+FROM film
+WHERE replacement_cost<=29.99
+ORDER BY replacement_cost) T
+GROUP BY cost_ranges
+--------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+
+His SQL query retrieves the count of movies in different replacement cost ranges from the "film" table. The inner query filters the movies that have a replacement cost of $29.99 or less and categorizes them into three cost ranges: low, medium, and high based on their replacement cost. The outer query groups the movies based on their cost ranges and retrieves the count of movies in each group. The final output is a table with two columns - "cost_ranges" and "COUNT(cost_ranges)" - which shows the count of movies in each replacement cost range (low, medium, high).
+
+
+Difference In Approach:-
+----------------------
+
+* His logic is bit different then mine as he is using derived table to find all the details from the table film including one more column which he has aliased as (cost_ranges) which
+  stores "low", "medium", "high" which he is filtering out using case statement according to the specified condition for replacement_cost. Now from that derived table he is
+  extracting the cost_ranges and the count of total records in that particular cost ranges which he is doing grouping by cost_ranges
+
+* While In my case I am using window function in which I am using case statement in order to categorise the replacement_costs into "low", "medium" and "high" according to the
+  specified range for each replacement_cost and then summing it up using Aggregate function SUM which will count the total films for each categorisation of low, medium and high
+
+* Also way of displaying is different, My approach will display low, medium and high as a column name and corresponding count as its value while his approach he is displaying it 
+  row-wise
+
+
+
+
+Lavs Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT replacement_category, count(replacement_category)
+FROM (SELECT replacement_cost, 
+		CASE 
+			WHEN replacement_cost BETWEEN 9.99 AND 19.99 THEN 'low'
+			WHEN replacement_cost BETWEEN 20.00 AND 24.99 THEN 'medium'
+			when replacement_cost BETWEEN 25.00 AND 29.99 THEN 'high'
+		END AS replacement_category
+	FROM film) der
+GROUP BY replacement_category;
+
+--------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+
+His solution is same as Sarthak's , First he is making derived table wherein he is extracting replacement_cost as well as including one more column using case statement by categorising it into low, medium and high  according to the specified range of replacement_cost and aliasing it to a name replacement_category  and then from this derived table he is extracting out the replacement_category and the count of total records based on replacement_category which he is doing it grouping by replacement_category.
+
+
+Difference in approach:-
+----------------------
+
+As his solution is same as Sarthak's, so difference is same as above mentioned for Sarthak's solution.
+
+
+Question 2:
+-----------
+Write a query to create a list of the film titles including their film title, film length and film category name ordered descendingly by the film length. Filter the results to only the movies in the category 'Drama' or 'Sports'.
+
+Eg.	"STAR OPERATION"	"Sports"	181
+	"JACKET FRISCO"	"Drama"	181
+
+
+My Solution:-
+
+--------------------------------------------------------------------------------
+
+SELECT f.title AS film_title, f.length, c.name
+FROM film f, film_category f_c, category c
+WHERE f.film_id=f_c.film_id
+AND f_c.category_id=c.category_id
+AND (c.name='Drama' or c.name='Sports')
+ORDER BY f.length DESC;
+
+--------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+
+* Here we have to create a list of the film titles including their film title, film length and film category name ordered descendingly by the film length for the category “sports”
+  and “drama”
+* So for that I have joined three tables i.e., film, film_category, category and extracted the film_title, film_length and film_category by applying the filter for category name to
+  be only “Sports” and “Drama” ordering by the length of the film in descending order.
+
+
+Team Solution Review for Question 2:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT title AS film_title, fc.category_id category,
+length_ film_length 
+FROM film f LEFT OUTER JOIN film_category fc 
+ON  f.film_id= fc.film_id
+LEFT OUTER JOIN category c 
+ON c.category_id= fc.category_id
+WHERE c.name in ('Drama','Sports')
+ORDER BY film_length DESC;
+--------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+His SQL query selects the film title, film category, and film length from the "film" table and joins it with the "film_category" and "category" tables. The query retrieves records where the category name is either "Drama" or "Sports". The "LEFT OUTER JOIN" is used to include all records from the "film" table and matching records from the "film_category" and "category" tables. The query also sorts the records in descending order of the film length. 
+
+Difference in Approach:
+----------------------
+- He has used ANSI way of joining the tables while I have used THETA way of joining multiple tables 
+- Apart from the way of joining the tables there is no difference in extracting the data.
+
+Lavs Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT f.title, cat.name, f.length
+FROM film f
+INNER JOIN film_category fc ON f.film_id = fc.film_id
+INNER JOIN category cat ON fc.category_id = cat.category_id
+WHERE cat.name IN ('Drama','Sports')
+ORDER BY f.length DESC;
+
+--------------------------------------------------------------------------------
+
+
+His Approach:
+------------
+He is joining the three tables using Inner Join by applying the filter for category name to be only “Sports” and “Drama” ordering by the length of the film in descending order and getting the entire data accordingly
+
+Difference in Approach:
+----------------------
+- He has also used ANSI way to join multiple ways while I have used the THETA way of joining multiple tables
+- Otherwise apart from the way of joining the tables all the information displayed is same
+
+Question 3: 
+----------
+Write a query to create a list of the addresses that are not associated to any customer.
+
+My Solutions:-
+
+--------------------------------------------------------------------------------
+
+SELECT a.address_id, a.address,a.district,a.city_id,c.customer_id
+FROM address a LEFT JOIN  customer c  -- Using left join here to retrieve all the data from address table irrespective
+ON a.address_id=c.address_id          -- whether its associated to any customer
+WHERE c.customer_id IS NULL;
+--------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* We have been asked to create a list of the addresses that are not associated to any customer
+* So For that I have used two tables i.e., address and customer to extract address_id, address, district, city_id and customer_id
+* I have used left join above to retrieve all the data from the address table irrespective of whether it is present in the customer table. So whichever customer_id is not associated
+  with any address will result in null values which i am using in the where clause to filter out the data where customer_id is null which will give me all the address which are not
+  related to any customer.
+
+Team Solution Review for Question 3:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT *
+FROM  ADDRESS
+WHERE address_id NOT IN (SELECT address_id
+FROM CUSTOMER );
+
+--------------------------------------------------------------------------------
+
+
+His Approach:
+------------
+
+His SQL query selects all columns from the "address" table and retrieves records where the "address_id" is not present in the "customer" table. The "NOT IN" clause is used to exclude the records from the "address" table that have an "address_id" present in the "customer" table. The final output is a table with all the columns from the "address" table, but only including records where the "address_id" is not present in the "customer" table.
+
+Difference in Approach:-
+----------------------
+* Difference is just that I have left joined two tables and then filtered out the the records that have customer_id as null I,e., where address is not related to any customer whereas
+  He has used subqueries to select those records where address_id of address table is not present in customer table
+
+Lavs Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT * FROM address ad
+INNER JOIN (select address_id from address
+EXCEPT
+select address_id from customer
+ORDER BY address_id) a on ad.address_id= a.address_id;
+--------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+He had make the derived table in which he is extracting all the address id which are not present in the customer table by using EXCEPT clause and then he is joining it with the address table
+
+Difference in Approach:-
+----------------------
+There is a difference in logic as he is making use of derived table to first get those address which are not associated with any customer and then joining the address table with that particular derived table and getting all the details for those address that are not associated with any customer
+
+
+Question 4: 
+----------
+Write a query to create a list of the revenue (sum of amount) grouped by a column in the format "country, city" ordered in decreasing amount of revenue.
+eg. 	"Poland, Bydgoszcz"		52.88
+
+
+My Solutions:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT DISTINCT CONCAT(c.country,', ',ct.city) AS country_city_name,
+SUM(p.amount) OVER(PARTITION BY c.country, ct.city) AS revenue        -- finding sum using window function based on country and city
+FROM country c, city ct , address ad, customer cu, payment p          -- Joining total 5 tables to get the desired result
+WHERE c.country_id= ct.country_id
+AND ad.city_id= ct.city_id
+AND cu.address_id=ad.address_id
+AND p.customer_id=cu.customer_id
+ORDER BY revenue DESC;                                                -- Ordering by revenue in descending order
+---------------------------------------------------------------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* Here we need to create a list of the revenue based on country, city according to decreasing amount of revenue
+* So for getting the desired result I have joined 4 tables i.e., country, city, address and payment to fetch country name, city name which I am concatenating using CONCAT() function
+* Also calculated the revenue by using window function which is calculating the sum of amount partitioning by Country,City and then ordering revenue by descending order
+
+Team Solution Review for Question 4:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------
+
+SELECT CONCAT(co.country,' , ',ci.city) 'country,city',SUM(amount) revenue
+FROM payment pay
+JOIN customer cus ON cus.customer_id = pay.customer_id 
+JOIN address adr ON adr.address_id=cus.address_id
+JOIN city ci ON ci.city_id=adr.city_id
+JOIN country co ON co.country_id=ci.country_id
+GROUP BY co.country,ci.city
+ORDER BY revenue DESC;
+--------------------------------------------------------------------------------
+
+
+His Approach:
+------------
+* His SQL query selects the concatenated country and city name, and the sum of the payment amount made by each customer from the "payment" table. 
+* The query joins the "payment", "customer", "address", "city", and "country" tables to retrieve the relevant information about the customers, their addresses, and their payments.
+* The "JOIN" clause is used to combine the records from these tables based on the specified join conditions. The "GROUP BY" clause is used to group the records based on the country
+  and city names. The "ORDER BY" clause is used to sort the records in descending order of the sum of payments made in each city. The final output is a table with two columns
+* "country,city" and "revenue" - which shows the total revenue generated in each city, ordered by revenue in descending order.
+
+Difference in Approach:-
+----------------------
+* He has used the ANSI way to join different tables whereas I have used the THETA way of joining the different tables
+* One more difference is that He has used normal group by clause to to group the records based on the country and city names while in my case I have used window function
+
+
+Lavs Solution:
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT DISTINCT CONCAT(cnty.country, ', ', cty.city) AS address , SUM(pay.amount) OVER(PARTITION BY cnty.country, cty.city) AS revenue
+FROM country cnty
+INNER JOIN city cty on cnty.country_id = cty.country_id
+INNER JOIN address ads ON cty.city_id = ads.city_id
+INNER JOIN customer cus ON ads.address_id = cus.address_id
+INNER JOIN payment pay ON cus.customer_id = pay.customer_id
+ORDER BY revenue DESC;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+* He is joining the required table using ansi way of joining the tables and then extracting the country and city ordering by revenue in descending order
+* Next he has founded the sum of amount by using window function partitioning by country and city to get the desired result
+
+
+Difference in Approach:-
+----------------------
+- Just the difference is in the way of joining. He has used ANSI way to join the two tables while I have used THETA way
+- Apart from that approach is same as mine
+
+
+Question 5:
+----------
+Write a query to create a list with the average of the sales amount each staff_id has per customer. 
+result: 2 56.64 
+        1 55.91 
+
+My Solution:
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT DISTINCT d.staff_id,
+ROUND(AVG(d.SUM_by_staff_customer) OVER(PARTITION BY d.staff_id),2) AS Avg_sales_each_staff_per_cust
+FROM
+(
+SELECT DISTINCT p.staff_id,p.customer_id,
+SUM(p.amount) OVER(PARTITION BY p.staff_id,p.customer_id) AS SUM_by_staff_customer
+FROM payment p
+) AS d                                                                                -- d is the alias for this derived table
+ORDER BY Avg_sales_each_staff_per_cust DESC;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* Here we are asked to create a list with the average of sales per customer with each staff id
+* Here each customer has multiple transaction with particular staff id, so first we need to find total amount of transaction each customer had with particular staff id, so I am
+  calculating that In the derived table (d) above using window function which is calculating the sum of amount partitioning by staff_id, customer_id
+* Now using derived table I am extracting staff_id and calculating average of the total_amount per customer calculated in derived table to find out the average amount of sales each
+  staff had
+* Now using derived table I am extracting staff_id and calculating average of the total_amount per customer calculated in derived table to find out the average amount of sales each
+  staff had
+
+
+Team Solution Review for Question 5:
+-----------------------------------
+
+Sarthaks Solution:
+
+---------------------------------------------------------------------
+
+SELECT STAFF_ID,(AMT/CO) AS AVERAGE_SALES_PER_CUSTOMER
+FROM (
+SELECT staff_id,COUNT(DISTINCT customer_id) CO,SUM(amount) AMT
+FROM payment
+GROUP BY staff_id) T
+----------------------------------------------------------------------
+
+
+His Approach:
+------------
+
+His SQL query calculates the average sales per customer for each staff member in the "payment" table by dividing the total payment amount by the number of distinct customers for each staff member. The final output is a table with two columns - "staff_id" and "average_sales_per_customer" - which shows the average sales per customer for each staff member.
+
+Difference in Approach:-
+----------------------
+* Approach is different in mine as I am making use of derived table wherein I am extracting staff_id, customer_id and summing the amount using window function partition by staff_id
+  And customer_id from payment table and then making use of the derived table to extract staff_id and the average of sum_by_staff_customer calculated in derived table to find out the 
+  Average sales of each staff per customer
+
+Lavs Solution:
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT staff_id, ROUND(SUM(amount)/COUNT(DISTINCT customer_id), 2) AS Average
+FROM payment
+GROUP BY staff_id;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+
+He has fetched the staff_id and used the aggregate function to find out the average by doing sum of amount by total number of distinct customer associated with particular staff grouping by staff_id
+
+Difference in approach:-
+----------------------
+His approach is similar to Sarthak's solution so difference is same as above mentioned for Sarthak
+
+
+
+Question 6:
+----------
+Write a query that shows average daily revenue of all Sundays.
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT ROUND(AVG(d2.tot_amt),2) AS avg_daily_of_all_sunday
+FROM
+(
+SELECT d1.date1,SUM(d1.amount) AS tot_amt
+	FROM
+		(
+		SELECT DATE(p.payment_date) AS date1,p.amount 
+		FROM payment p
+		WHERE DAYNAME(p.payment_date) = 'Sunday'
+		) AS d1                                       -- d1 is the alias for inner derived table
+GROUP BY date1
+) AS d2;                                                    -- d2 is the alias for outer derived table
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+
+* We have been asked to show average daily revenue of all Sundays.
+* So for that I have used single payment table wherein in the inner derived table I am extracting the payment_date and amount by filtering the data where the date is of sunday by
+  using DAYNAME() function in where clause
+* In each sunday their can be multiple transaction so in order to find out the average, first we need to calculate the total of all the transaction in every sunday. So in outer
+  derived table I am calculating the sum of amount grouping by the date (obtain from inner derived table by filtering out on the basis of sunday) which will give me the total
+  transaction in all sundays.
+* Now that I have got total amount ,so I can find the average of that total amount which will give me the desired result that is average daily revenue of all sundays.
+
+
+Team Solution Review for Question 6:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT AVG(ADR) AVERAGE_DAILY_REVENUE
+FROM (
+SELECT DATE(PAYMENT_DATE ) SUNDAYS,COUNT(DISTINCT CUSTOMER_ID) CO,sum(AMOUNT) ADR
+FROM PAYMENT
+WHERE WEEKDAY(PAYMENT_DATE)=6
+GROUP BY DATE(PAYMENT_DATE)
+ORDER BY DATE(PAYMENT_DATE )) S
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:
+------------
+* His SQL query calculates the average daily revenue for Sundays in the "payment" table. 
+* The subquery groups the payment records by date and counts the number of distinct customers for each Sunday, and sums the payment amounts made on each Sunday. 
+* The outer query then calculates the average daily revenue for Sundays by averaging the sum of payments made on each Sunday. 
+* The final output is a table with one column - "AVERAGE_DAILY_REVENUE" - which shows the average daily revenue for Sundays.
+
+Difference in Approach:-
+----------------------
+- Approach is same as mine but the only difference is that he has used WEEKDAY function to filter out the records in the basis of Sunday while in my case I have used the function
+  DAYNAME to filter out the data in the basis of Sunday
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT ROUND(SUM(amount)/(SELECT COUNT(DISTINCT DATE(PAYMENT_DATE)) FROM payment WHERE WEEKDAY(payment_date)='Sunday'), 2) AS Sunday_avg
+FROM payment
+WHERE WEEKDAY(payment_date)='Sunday';
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+* The inner query counts the number of distinct Sundays in the payment table.
+* The outer query calculates the total amount paid on all Sundays and divides it by the count of distinct Sundays to get the average payment per Sunday.
+* The ROUND function is used to round the result to two decimal places and the AS keyword is used to give a name "Sunday_avg" to the resulting column.
+* Finally, the WHERE clause filters the payment table to only include pay
+
+Difference in Approach:-
+----------------------
+Approach is different than mine as he is not making use of any derived table or subqueries , he is summing up the amount dividing it by distinct date based on Sunday from payment table .
+
+Question 7:
+----------
+Write a query to create a list that shows how much the average customer spent in total (customer life-time value) grouped by the different districts.
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT DISTINCT d.district,Round(AVG(d.total_sum) OVER(PARTITION BY d.district),2) as average_amount
+FROM
+(
+SELECT DISTINCT c.customer_id, a.district,
+SUM(p.amount) OVER(PARTITION BY c.customer_id) AS total_sum -- using the window function to calculate sum partition by customer_id
+FROM customer c.address a, payment p
+WHERE c.address_id = a.address_id
+AND c.customer_id=p.customer_id
+) AS d;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+* Here we need to find out the average amount of all customer spent in total based on each district
+* For that I have used three tables i.e., customer, address and payment and extracted customer_id, district and the total amount for each customer as each customer have multiple
+  transaction in each district
+* Now making above as derived table I extracted district and Average of total_sum calculated for each customer in the derived table partitioning by the district.So this way I am
+  getting the district and the average of customers total spent grouped by each district
+
+
+Team Solution Review for Question 7:
+-----------------------------------
+
+Sarthaks Solution:
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT DISTRICT,SUM(AMOUNT)/COUNT(DISTINCT C.CUSTOMER_ID) AVEREAGE_CUSTOMER_SPENDING
+FROM CUSTOMER C JOIN ADDRESS A 
+ON C.ADDRESS_ID=A.ADDRESS_ID
+JOIN PAYMENT P
+ON C.CUSTOMER_ID=P.CUSTOMER_ID
+GROUP BY DISTRICT
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+* His SQL query calculates the average customer spending for each district by dividing the total payment amount made by all customers in the district by the number of distinct
+  customers in the district. 
+* The query joins the "customer", "address", and "payment" tables to obtain the district and payment amount for each customer, and groups the records by district. 
+* The final output is a table with two columns - "district" and "average_customer_spending" - which shows the average customer spending for each district.
+
+Difference in Approach:-
+----------------------
+* He is using ANSI way of joining the tables while I have used the THETA way to join the tables.
+* Otherwise Approach is nearly same, its just that I have used derived tables while he has done it directly.
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT ad.district, AVG(amount) AS district_avg
+FROM payment pay
+INNER JOIN customer cus ON pay.customer_id=cus.customer_id
+INNER JOIN address ad ON cus.address_id=ad.address_id
+GROUP BY(ad.district);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+- He is extracting the district and the average of amount based on district
+
+Difference in Approach:-
+----------------------
+* He has used the ANSI way of joining tables while I have used THETA way of joining tables
+* The approach is different as he is directly finding out the average of amount based on district while in my case I have make one derived table wherein I am extracting customer_id,
+  district and summing the amount partitioning by customer_id as in particular district a customer can have multiple transaction and then I am extracting district and finding the
+  average of the total_sum calculated in derived table based on each district.
+
+Question 8:
+----------
+Write a query to list down the highest overall revenue collected (sum of amount per title) by a film in each category. Result should display the film title, category name and total revenue.
+
+eg. 	"FOOL MOCKINGBIRD"		"Action"	175.77
+	"DOGMA FAMILY"		"Animation"	178.7
+	"BACKLASH UNDEFEATED"	"Children"	158.81
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT d2.title,d2.name,d2.Max_revenue
+FROM
+(
+SELECT DISTINCT d1.title,d1.name,d1.overall_revenue_by_title,
+MAX(d1.overall_revenue_by_title) OVER(PARTITION BY d1.name) AS Max_revenue
+FROM
+	(
+		SELECT DISTINCT f.title,c.name,
+		SUM(p.amount) OVER(PARTITION BY f.title) AS overall_revenue_by_title 	-- using window function to find overall revenue per title
+		FROM film f,film_category f_c,category c,inventory i,rental r,payment p
+		WHERE f.film_id=f_c.film_id
+		AND f_c.category_id = c.category_id
+		AND f.film_id=i.film_id
+		AND i.inventory_id=r.inventory_id
+		AND r.rental_id = p.rental_id
+	) AS d1                                  -- d1 is an alias for inner derived table
+) AS d2                                      -- d2 is an alias for outer derived table
+WHERE overall_revenue_by_title=Max_revenue;  -- filtering the data where overall revenue is equal to max_revenue
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+* Here we need to list out the film_title and highest overall revenue collected sum of amount per title by a film for each category For this I have used 6 tables i.e., film,
+  film_category ,category, inventory, rental, payment and from that I have extracted film_title, film category and sum of amount partition by film_title, so this will give me the
+  overall revenue for each film title
+* Now from inner derived table I have the data of film_title, film category and overall revenue generated from each film.So in outer derived table I extracted the film_title,
+  category and Maximum of overall revenue for each category by using window function for finding MAX of overall_revenue partition by category.
+* Now from outer derived table I extracted the film_title, category name and the max revenue where my  max_revenue= overall_revenue. This way I am getting those film title who has
+  generated highest revenue in each category
+
+Team Solution Review for Question 8:
+-----------------------------------
+Sarthaks Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+WITH T AS
+(SELECT name,SUM(AMOUNT) MS,TITLE,DENSE_RANK() OVER(PARTITION BY NAME ORDER BY SUM(AMOUNT) DESC) RN
+FROM PAYMENT PY JOIN RENTAL RE
+ON PY.RENTAL_ID=RE.RENTAL_ID
+JOIN INVENTORY IV 
+ON IV.INVENTORY_ID=RE.INVENTORY_ID
+JOIN FILM FM
+ON FM.FILM_ID=IV.FILM_ID
+JOIN FILM_CATEGORY FC
+ON FC.FILM_ID=FM.FILM_ID
+JOIN CATEGORY CT
+ON CT.CATEGORY_ID=FC.CATEGORY_ID
+GROUP BY NAME,FM.FILM_ID,TITLE) 
+    
+SELECT NAME CATEGORY_NAME,MS AS TOTAL_REVENUE,TITLE
+FROM T
+WHERE RN=1;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+His SQL query uses a Common Table Expression (CTE) called "T" to find the top-rented film category for each customer, along with the total revenue earned from each category. The CTE joins multiple tables including payment, rental, inventory, film, film_category, and category, and aggregates the results by customer name, film title, and sum of payment amount. The outer SELECT statement retrieves the category name, total revenue, and film title for each customer's top-rented film category based on the dense rank of the total revenue in descending order.
+
+Difference in Approach:-
+----------------------
+* Again the difference is there in the way of joining the tables. He has used ANSI way while in my case I have used THETA way
+* Another difference is that he has used CTEs to make the derived table while I have specified derived table directly in the from clause
+* He has used DENSE_RANK function in order to rank the total revenue generated for each title for each category
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT B.title, B.name, B.max_rev 
+FROM (SELECT distinct title, name, first_value(total_revenue) over(partition by name order by total_revenue desc) AS max_rev , total_revenue
+FROM (SELECT DISTINCT f.title, cat.name, SUM(amount) OVER(PARTITION BY f.title) AS total_revenue
+FROM film f
+INNER JOIN film_category fc ON f.film_id = fc.film_id
+INNER JOIN category cat ON fc.category_id = cat.category_id
+INNER JOIN inventory inv ON f.film_id=inv.film_id
+INNER JOIN rental ren ON inv.inventory_id=ren.inventory_id
+INNER JOIN payment pay ON ren.rental_id=pay.rental_id) A)B
+WHERE max_rev= total_revenue;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+* The outermost SELECT statement selects the title, name, and max_rev columns. These columns are obtained from a subquery B.
+* The subquery B uses the DISTINCT keyword to select unique title and name combinations. It also selects the total_revenue and the max_rev, which is the maximum revenue value for
+  each name. The max_rev is calculated using the FIRST_VALUE function, which retrieves the first value of total_revenue in each name partition ordered by descending total_revenue.
+* The subquery B is derived from another subquery A, which selects the DISTINCT title, name, and SUM(amount) columns. The SUM(amount) column calculates the total revenue generated by
+  each title. The PARTITION BY clause groups the data by title, and the ORDER BY clause orders the data by the total_revenue in descending order.
+* The subquery A uses several INNER JOIN clauses to join the film, film_category, category, inventory, rental, and payment tables. It retrieves the title, name, and amount columns
+  from these tables and calculates the total revenue for each title.
+* The outermost WHERE clause filters the results by selecting only the rows where the max_rev equals the total_revenue.
+
+Difference in Approach:-
+----------------------
+* There difference is there in the way of joining the tables. He has used ANSI way while in my case I have used THETA way
+* Another difference is that he is using the first_value function to retrieve the data based on decreasing total revenue partitioning by each category
+
+
+Question 9:
+----------
+Modify the table "rental" to be partitioned using PARTITION command based on ‘rental_date’ in below intervals:
+	<2005
+  between 2005–2010
+	between 2011–2015
+	between 2016–2020
+	>2020 - Partitions are created yearly
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE rental 
+PARTITION BY RANGE(YEAR(rental_date))
+(
+PARTITION rental_less_than_2005 VALUES LESS THAN (2005),
+PARTITION rental_between_2005_2010 VALUES LESS THAN (2011),
+PARTITION rental_between_2011_2015 VALUES LESS THAN (2016),
+PARTITION rental_between_2016_2020 VALUES LESS THAN (2021),
+PARTITION rental_greater_than_2020 VALUES LESS THAN MAXVALUE
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* Here In this particular question first I have to drop the foreign keys as partitioning was not supporting the foreign key constraints in MYSQL as it can change the underlying
+  structure of the table
+* Next I partitioned the rental table by rental_date with the specified range of years.
+* First Partition “rental_less_than_2005” will contain those values where year is less than 2005
+* Second Partition “rental_between_2005_2010” will contain those values where year is between 2005 and 2010
+* Third Partition “rental_between_2011_2015” will contain those values where year is between 2011 and 2015
+* Fourth Partition “rental_between_2016_2020” will contain those values where year is between 2016 and 2020
+* And everything after 2020 will be stored in the partition “rental_greater_than_2020”
+
+
+Team Solution Review for Question 9:
+-----------------------------------
+
+Sarthaks Solution:-
+
+--------------------------------------------------------------------------------
+
+ALTER TABLE rental
+PARTITION BY RANGE (YEAR(rental_date))
+(
+PARTITION p1_less_than_2005 VALUES LESS THAN (2005),
+PARTITION p2_between_2005_2010 VALUES LESS THAN (2011),
+PARTITION p3_between_2011_2015 VALUES LESS THAN (2016),
+PARTITION p4_between_2016_2020 VALUES LESS THAN (2021),
+PARTITION p5_greater_than_2020 VALUES LESS THAN (MAXVALUE)
+);
+---------------------------------------------------------------------------------
+
+His Approach:-
+------------
+His SQL statement alters the table "rental" by partitioning it based on the range of the rental date year. The table is partitioned into five parts: "p1_less_than_2005", "p2_between_2005_2010", "p3_between_2011_2015", "p4_between_2016_2020", and "p5_greater_than_2020". Each partition has a specific range of years, and the data in the "rental" table is distributed among the partitions based on the rental date year. This can help improve query performance and optimize data storage.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE rental 
+PARTITION BY RANGE(YEAR(rental_date))
+(
+PARTITION rental_less_than_2005 VALUES LESS THAN (2005),
+PARTITION rental_between_2005_2010 VALUES LESS THAN (2011),
+PARTITION rental_between_2011_2015 VALUES LESS THAN (2016),
+PARTITION rental_between_2016_2020 VALUES LESS THAN (2021),
+PARTITION rental_greater_than_2020 VALUES LESS THAN MAXVALUE
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+His SQL statement alters the table "rental" by partitioning it based on the range of the rental date year. The table is partitioned into five parts: "p1_less_than_2005", "p2_between_2005_2010", "p3_between_2011_2015", "p4_between_2016_2020", and "p5_greater_than_2020". Each partition has a specific range of years, and the data in the "rental" table is distributed among the partitions based on the rental date year. This can help improve query performance and optimize data storage.
+
+Difference in approach:-
+----------------------
+* Approach is same as mine
+
+Question 10:
+-----------
+Modify the table "film" to be partitioned using PARTITION command based on ‘rating’ from below list. Further apply hash sub-partitioning based on ‘film_id’ into 4 sub-partitions.
+
+partition_1 - "R"
+partition_2 - "PG-13", "PG"
+partition_3 - "G", "NC-17"
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE film
+PARTITION BY LIST(rating)
+SUBPARTITION BY HASH(film_id) SUBPARTITIONS 4
+(
+PARTITION PR values('R'),
+PARTITION Pgs values('PG-13', 'PG'),
+PARTITION GNC values('G', 'NC-17')
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:
+-----------
+* Here first I have used PARTITION BY LIST based on rating
+* Then I have used SUBPARTITION BY HASH based on film_id
+
+Team Solution Review for Question 10:
+------------------------------------
+
+Sarthaks Solution:-
+--------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE film
+PARTITION BY LIST (rating)
+
+SUBPARTITION BY HASH (film_id) SUBPARTITIONS 4 (
+PARTITION partition_1 VALUES ("R"),
+PARTITION partition_2 VALUES ("PG-13", "PG"),
+PARTITION partition_3 VALUES ("G", "NC-17"),
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+His SQL statement is used to alter the table "film" by partitioning it based on the "rating" column using the LIST method. Additionally, it specifies that each partition will be further subpartitioned based on the "film_id" column using the HASH method and creating 4 subpartitions. Further there are 3 partitions named "partition_1", "partition_2", and "partition_3" based on the different possible values of the "rating" column.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE film
+PARTITION BY LIST (rating)
+
+SUBPARTITION BY HASH (film_id) SUBPARTITIONS 4 (
+PARTITION partition_1 VALUES ("R"),
+PARTITION partition_2 VALUES ("PG-13", "PG"),
+PARTITION partition_3 VALUES ("G", "NC-17"),
+);
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+His SQL statement is used to alter the table "film" by partitioning it based on the "rating" column using the LIST method. Additionally, it specifies that each partition will be further subpartitioned based on the "film_id" column using the HASH method and creating 4 subpartitions. Further there are 3 partitions named "partition_1", "partition_2", and "partition_3" based on the different possible values of the "rating" column.
+
+Difference in Approach:-
+-----------------------
+* Approach is same as mine
+
+Question 11:
+-----------
+Write a query to count the total number of addresses from the “address” table where the ‘postal_code’ is of the below formats. Use regular expression.
+9*1**, 9*2**, 9*3**, 9*4**, 9*5**
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT count(postal_code) 
+FROM address
+WHERE postal_code REGEXP '^9[0-9][1-5][0-9]{2}';  -- Using regular expression to retrieve all the postal code with the given pattern
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+* Here I have used the address table to extract postal_code of the specific pattern by using a regular expression in the where clause to filter out the data
+* Next I used the Aggregate function COUNT to count the number of postal code following the specific pattern
+
+Team Solution Review for Question 11:
+------------------------------------
+
+Sarthaks Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT count(postal_code) FROM ADDRESS
+WHERE Postal_code REGEXP '^9[0-9][1-5][0-9]{2}$'
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+* His query selects the count of postal codes from the ADDRESS table that match the regular expression pattern ^9[0-9][1-5][0-9]{2}$, which matches any five-digit postal code
+  starting with a 9, where the second digit is between 0 and 9, and the third digit is between 1 and 5.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT COUNT(postal_code) 
+FROM address
+WHERE postal_code REGEXP '^9[0-9][1-5][0-9]{2}';
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+* His query selects the count of postal codes from the ADDRESS table that match the regular expression pattern ^9[0-9][1-5][0-9]{2}$, which matches any five-digit postal code
+  starting with a 9, where the second digit is between 0 and 9, and the third digit is between 1 and 5.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Question 12:
+-----------
+Write a query to create a materialized view from the “payment” table where ‘amount’ is between(inclusive) $5 to $8. The view should manually refresh on demand. Also write a query to manually refresh the created materialized view.
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE EVENT refresh_payment_between_5_8      -- Creating the event which refresh the view every day.
+ON SCHEDULE EVERY 1 DAY
+DO
+BEGIN
+  CREATE OR REPLACE VIEW payment_between_5_8 AS
+  SELECT *
+  FROM payment
+  WHERE amount BETWEEN 5 AND 8;
+END$$
+DELIMITER ;
+
+-- APPLYING SELECT CLAUSE IN VIEW CREATED ABOVE WHICH CONTAINS THE DATA WHERE AMOUNT IS BEWTWEEN $5 AND $8
+SELECT * FROM payment_between_5_8;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* As materialized view was not supported by MYSQL so I have created the event name “refresh_payment_between_5_8” which is scheduled to refresh in every one day and inside that I have
+  created the normal view which stores all the data of the payment table where amount is between $5 and $ 8
+
+Team Solution Review for Question 12:
+------------------------------------
+
+Sarthaks Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE VIEW payment_between_5_8 AS
+
+SELECT *
+FROM payment
+WHERE amount BETWEEN 5 AND 8;
+delimiter $$;
+CREATE EVENT refresh_payment_between_5_8
+ON SCHEDULE EVERY 1 DAY
+DO
+BEGIN
+CREATE OR REPLACE VIEW payment_between_5_8 AS
+SELECT *
+FROM payment
+WHERE amount BETWEEN 5 AND 8;
+END$$;
+delimiter ;
+
+SELECT * FROM payment_between_5_8;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+* Here I have created a view named "payment_between_5_8" that selects all rows from the "payment" table where the "amount" column value is between 5 and 8. Then created an event
+  named "refresh_payment_between_5_8" that will run every day and replace the view with the latest data from the "payment" table that matches the condition. The use of the
+  "delimiter" command is to change the default delimiter from ";" to "$$" to allow the creation of the event containing ";" inside its body.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE EVENT refresh_payment_between_5_8     
+ON SCHEDULE EVERY 1 DAY
+DO
+BEGIN
+  CREATE OR REPLACE VIEW payment_between_5_8 AS
+  SELECT *
+  FROM payment
+  WHERE amount BETWEEN 5 AND 8;
+END$$
+DELIMITER ;
+
+SELECT * FROM payment_between_5_8;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+His Approach:-
+------------
+* Here I have created a view named "payment_between_5_8" that selects all rows from the "payment" table where the "amount" column value is between 5 and 8. Then created an event
+  named "refresh_payment_between_5_8" that will run every day and replace the view with the latest data from the "payment" table that matches the condition. The use of the
+  "delimiter" command is to change the default delimiter from ";" to "$$" to allow the creation of the event containing ";" inside its body.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Question 13:
+-----------
+Write a query to list down the total sales of each staff with each customer from the ‘payment’ table. In the same result, list down the total sales of each staff i.e. sum of sales from all customers for a particular staff. Use the ROLLUP command. Also use GROUPING command to indicate null values.
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT p.staff_id,p.customer_id,
+GROUPING(p.staff_id) as staff,
+GROUPING(p.customer_id) as customer,sum(p.amount) as sum_of_sales
+FROM payment p
+GROUP BY p.staff_id,p.customer_id
+WITH ROLLUP;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+My Approach:-
+-----------
+* Here we have been asked to list down all the total sales of each staff with each customer. Also we need list down the total sales of each staff i.e. sum of sales from all customers
+  for a particular staff.
+* So for that I have used the payment table to extract staff_id,customer_id and applied grouping on both customer_id and staff_id to handle null values and clearly indicate the
+  ROLLUP sum for the particular column
+
+Team Solution Review for Question 13:
+------------------------------------
+
+Sarthaks Solution:-
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT staff_id, customer_id, GROUPING(staff_id) AS flag1,
+GROUPING(customer_id) AS flag2, SUM(amount) AS grouped_amt
+FROM payment
+GROUP BY staff_id, customer_id
+WITH ROLLUP;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+His he has used the GROUP BY clause with ROLLUP to group the payment table by staff_id and customer_id, while also calculating the total amount of payments made by each staff member and customer. The GROUPING function is used to create two flag columns indicating whether the staff_id or customer_id has been aggregated by the ROLLUP operation.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT staff_id, customer_id,  sum(amount)AS total_sales, 
+GROUPING(staff_id),
+GROUPING(customer_id)
+FROM payment
+GROUP BY staff_id, customer_id WITH ROLLUP;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+His he has used the GROUP BY clause with ROLLUP to group the payment table by staff_id and customer_id, while also calculating the total amount of payments made by each staff member and customer. The GROUPING function is used to create two flag columns indicating whether the staff_id or customer_id has been aggregated by the ROLLUP operation.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+
+Question 14.
+------------
+Write a single query to display the customer_id, staff_id, payment_id, amount, amount on immediately previous payment_id, amount on immediately next payment_id ny_sales for the payments from customer_id ‘269’ to staff_id ‘1’.
+
+My Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+select customer_id,payment_id,staff_id,
+lead(amount) over(order by payment_id) next_payment,
+lag(amount) over(order by payment_id) previous_amount,
+lead(amount) over(Partition by customer_id,staff_id ORDER BY payment_id) as ny_sales,
+lag(amount) over(Partition by customer_id,staff_id ORDER BY payment_id) as py_sales
+from payment
+where customer_id=269 and staff_id=1;
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+My Approach:-
+-----------
+* Here we have been asked to display the customer_id, staff_id, payment_id, amount, amount on immediately previous payment_id, amount on immediately next payment_id
+* For this we have used the payment table and used the window function LEAD to extract the next payment and LAG to extract the previous payment order by payment_id
+* Next we need to find the ny_sales - the amount of the next payment made by the same customer to the same staff member and py sales - the amount of the previous payment made by the
+  same customer to the same staff member.For this as well I have used lead and lag function partitioned by customer_id and staff_id
+* Used where clause to filter out the data where customer_id=269 and staff_id=1
+
+
+Team Solution Review for Question 14:
+------------------------------------
+
+Sarthaks Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT customer_id, staff_id, payment_id, amount,
+LAG(amount, 1) OVER(ORDER BY payment_id) AS previous_payment_id_amt,
+LEAD(amount, 1) OVER(ORDER BY payment_id) AS next_payment_id_amt,
+LAG(amount, 1) OVER(PARTITION BY customer_id, staff_id ORDER BY
+payment_id) AS py_sales,
+LEAD(amount, 1) OVER(PARTITION BY customer_id, staff_id ORDER BY
+payment_id) AS ny_sales
+FROM payment
+WHERE customer_id=269 and staff_id=1;
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+* This SQL query selects the payment information for a specific customer and staff member with ID 269 and 1, respectively. 
+* The query includes the amount of the previous and next payment, as well as the previous and next payment amount for the same customer and staff member. 
+* The LAG and LEAD functions are used to retrieve the values of previous and next rows in the result set, respectively, based on the order of the payment_id column. 
+* The PARTITION BY clause is used to group the results by customer and staff, so that the LAG and LEAD functions return the values of the previous and next payments for the same
+  customer and staff member.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine
+
+Lavs Solution:-
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+SELECT customer_id, staff_id, payment_id, amount, lag(amount) over() AS prev_payment, LEAD(amount) OVER() AS next_payment
+FROM payment
+WHERE customer_id=269 AND staff_id=1;
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+His Approach:-
+------------
+* This SQL query selects the payment information for a specific customer and staff member with ID 269 and 1, respectively. 
+* The query includes the amount of the previous and next payment, as well as the previous and next payment amount for the same customer and staff member. 
+* The LAG and LEAD functions are used to retrieve the values of previous and next rows in the result set, respectively, based on the order of the payment_id column. 
+* The PARTITION BY clause is used to group the results by customer and staff, so that the LAG and LEAD functions return the values of the previous and next payments for the same
+  customer and staff member.
+
+Difference in Approach:-
+----------------------
+* Approach is same as mine except for ny sales and py sales
+
+
+**************************************************************************************xxxxxxxx****************************************************************************************
+
+
